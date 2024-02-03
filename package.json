@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "tsnd ./src/infraestructure/ui/app.ts",
     "build": "rimraf ./dist && tsc",
-    "start": "npm run build && node dist/app.js"
+    "start": "npm run build && node dist/app.js",
+    "migrate:gen": "npx drizzle-kit generate:sqlite --schema ./src/infraestructure/db/schema.ts --out ./src/infraestructure/db/migrations",
+    "migrate:exec": "npx ts-node src/infraestructure/db/migrate.ts"
   },
   "keywords": [],
   "author": "",

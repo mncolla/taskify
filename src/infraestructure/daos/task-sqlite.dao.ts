@@ -1,39 +1,65 @@
-import { TaskEntity } from "../../domain/entities/task.entiy"
+import { eq } from "drizzle-orm"
+import { TaskEntity, type TaskStatusType } from "../../domain/entities/task.entiy"
 import { TaskRepository } from "../../domain/repositories/task.repository"
-import db from "../db/client"
+import { db } from "../db/client"
+import { tasks } from '../db/schema'
 
-export class TaskSqliteDAO implements TaskRepository{
+export class TaskSqliteDAO implements TaskRepository {
 
-    constructor(){
-        const seed = db.prepare("CREATE TABLE IF NOT EXISTS Tasks(id text, title text, description text)")
-        seed.run()
-    }
+    constructor() { }
 
     async getAll(): Promise<TaskEntity[]> {
-        // const tasks = await db.select().from(tasksDB)
-        console.log("get all")
-        return []
+        const tasksResponse = await db.select().from(tasks)
+        const taskData: TaskEntity[] = tasksResponse.map(({id, title, description, status, startDate, endDate}) => {
+            return {
+                id,
+                title,
+                description,
+                status: status as TaskStatusType,
+                startDate: new Date(startDate),
+                endDate: new Date(endDate)
+            }
+        })
+
+        return taskData
     }
 
     async create(task: TaskEntity): Promise<TaskEntity> {
-        const getTasks = db.prepare("SELECT * FROM tasks")
-        const response = getTasks.run()
-        console.log("tasks", response)
-        // const newTask = await db.insert(tasksDB).values({
-        //     title: task.title,
-        //     description: task.description,
-        // })
 
-        // console.log("nueva tarea", newTask) 
+        const { id, description, startDate, endDate, status, title } = task
+
+        await db.insert(tasks).values({
+            id,
+            description,
+            startDate: new Date(startDate).toString(),
+            endDate: new Date(endDate).toString(),
+            status,
+            title
+        })
 
         return task
     }
 
+    async getById(id: string): Promise<TaskEntity|null> {
+        const foundTask = await db.select().from(tasks).where(eq(tasks.id,id))
+        
+        console.log("found", foundTask)
+        
+        if (!foundTask) return null
+        return null
+    }
 
-    // getAll: () => Promise<TaskEntity[]>;
-    // getById: (id: string) => Promise<TaskEntity | null>;
-    // create: (task: TaskEntity) => Promise<TaskEntity>;
-    // update: (task: TaskEntity) => Promise<TaskEntity>;
+    async update(task: TaskEntity): Promise<TaskEntity> {
+
+        return task
+    }
+
+    async deleteById(id: string): Promise<void> {
+
+        return 
+    }
+
+
     // deleteById: (id: string) => Promise<void>;
-    
+
 }
